@@ -2,28 +2,20 @@ using UnityEngine;
 
 public class MarkerImageActivator : MonoBehaviour
 {
-    [Header("Assign only the image (not the button)")]
-    public GameObject imageToShow;
+ public GameObject imageToShow;
 
     void Start()
     {
         if (imageToShow != null)
             imageToShow.SetActive(false); // hide at start
-
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
     }
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player"))
+        if (other.CompareTag("Player")) // only player triggers
         {
             if (imageToShow != null)
                 imageToShow.SetActive(true);
-
-            // Unlock + show cursor so player can interact
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
         }
     }
 
@@ -31,18 +23,8 @@ public class MarkerImageActivator : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
-            HideImage();
+            if (imageToShow != null)
+                imageToShow.SetActive(false); // hide when leaving
         }
-    }
-
-    // 🔹 Call this from your CheckEstimateButton OnClick()
-    public void HideImage()
-    {
-        if (imageToShow != null)
-            imageToShow.SetActive(false);
-
-        // Lock + hide cursor back for gameplay
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
     }
 }
