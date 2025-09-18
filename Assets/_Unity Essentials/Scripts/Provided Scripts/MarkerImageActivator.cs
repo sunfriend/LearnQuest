@@ -1,21 +1,27 @@
+using System.Collections;
 using UnityEngine;
 
 public class MarkerImageActivator : MonoBehaviour
 {
     [Header("UI References")]
-    public GameObject initialImage;      // Initial image shown with buttons
-    public GameObject hoverImage;        // Image shown when HoverButton clicked
-    public GameObject xActementImage;    // Image shown when XActementButton clicked
-    public GameObject estimateImage;     // Image shown when EstimateButton clicked
-    public GameObject buttonsGroup;      // Parent GameObject containing the 3 buttons
+    public GameObject initialImage;           // Initial image shown with buttons
+    public GameObject hoverImage;             // Image shown when HoverButton clicked
+    public GameObject estimateImage;          // Image shown when EstimateButton clicked
+    public GameObject buttonsGroup;           // Parent GameObject containing the buttons
+
+    [Header("XActement Sequence")]
+    public GameObject[] xActementImages;      // Array of images to display in XActement sequence
+    public float xActementDisplayTime = 2f;   // Duration each image is shown
+
+    [Header("OrderNow Sequence")]
+    public GameObject[] orderNowImages;       // Array of images to display in OrderNow sequence
+    public float orderNowDisplayTime = 2f;    // Duration each image is shown
+
+    private Coroutine activeCoroutine;        // Keep track of the running coroutine
 
     void Start()
     {
-            // Hide all images and buttons at start
-        if (initialImage != null) initialImage.SetActive(false);
-        if (hoverImage != null) hoverImage.SetActive(false);
-        if (xActementImage != null) xActementImage.SetActive(false);
-        if (estimateImage != null) estimateImage.SetActive(false);
+        HideAllImages();
         if (buttonsGroup != null) buttonsGroup.SetActive(false);
 
         Cursor.lockState = CursorLockMode.Locked;
@@ -26,11 +32,9 @@ public class MarkerImageActivator : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
-            // Show initial image and buttons
             if (initialImage != null) initialImage.SetActive(true);
             if (buttonsGroup != null) buttonsGroup.SetActive(true);
 
-            // Unlock and show cursor for UI interaction
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
         }
@@ -40,10 +44,10 @@ public class MarkerImageActivator : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
+            StopActiveSequence();
             HideAllImages();
             if (buttonsGroup != null) buttonsGroup.SetActive(false);
 
-            // Lock cursor back for gameplay
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }
@@ -52,23 +56,66 @@ public class MarkerImageActivator : MonoBehaviour
     // ---------- BUTTON METHODS ----------
     public void ShowHoverImage()
     {
+        StopActiveSequence();
         HideAllImages();
         if (hoverImage != null) hoverImage.SetActive(true);
-        if (buttonsGroup != null) buttonsGroup.SetActive(true); // keep buttons visible
-    }
-
-    public void ShowXActementImage()
-    {
-        HideAllImages();
-        if (xActementImage != null) xActementImage.SetActive(true);
-        if (buttonsGroup != null) buttonsGroup.SetActive(true); // keep buttons visible
+        if (buttonsGroup != null) buttonsGroup.SetActive(true);
     }
 
     public void ShowEstimateImage()
     {
+        StopActiveSequence();
         HideAllImages();
         if (estimateImage != null) estimateImage.SetActive(true);
-        if (buttonsGroup != null) buttonsGroup.SetActive(true); // keep buttons visible
+        if (buttonsGroup != null) buttonsGroup.SetActive(true);
+    }
+
+    public void ShowXActementImage()
+    {
+        StopActiveSequence();
+        HideAllImages();
+        if (buttonsGroup != null) buttonsGroup.SetActive(true);
+
+        if (xActementImages != null && xActementImages.Length > 0)
+        {
+            activeCoroutine = StartCoroutine(PlayImageSequence(xActementImages, xActementDisplayTime));
+        }
+    }
+
+    public void ShowOrderNowImage()
+    {
+        StopActiveSequence();
+        HideAllImages();
+        if (buttonsGroup != null) buttonsGroup.SetActive(true);
+
+        if (orderNowImages != null && orderNowImages.Length > 0)
+        {
+            activeCoroutine = StartCoroutine(PlayImageSequence(orderNowImages, orderNowDisplayTime));
+        }
+    }
+
+    // ---------- COMMON SEQUENCE COROUTINE ----------
+    private IEnumerator PlayImageSequence(GameObject[] images, float displayTime)
+    {
+        foreach (var img in images)
+        {
+            HideAllImages(); // hide previous
+            if (img != null) img.SetActive(true);
+            yield return new WaitForSeconds(displayTime);
+        }
+
+        // After sequence, hide all except buttons
+        HideAllImages();
+        if (buttonsGroup != null) buttonsGroup.SetActive(true);
+    }
+
+    private void StopActiveSequence()
+    {
+        if (activeCoroutine != null)
+        {
+            StopCoroutine(activeCoroutine);
+            activeCoroutine = null;
+        }
     }
 
     // Hide all images
@@ -76,7 +123,18 @@ public class MarkerImageActivator : MonoBehaviour
     {
         if (initialImage != null) initialImage.SetActive(false);
         if (hoverImage != null) hoverImage.SetActive(false);
-        if (xActementImage != null) xActementImage.SetActive(false);
         if (estimateImage != null) estimateImage.SetActive(false);
+
+        if (xActementImages != null)
+        {
+            foreach (var img in xActementImages)
+                if (img != null) img.SetActive(false);
+        }
+
+        if (orderNowImages != null)
+        {
+            foreach (var img in orderNowImages)
+                if (img != null) img.SetActive(false);
+        }
     }
 }
